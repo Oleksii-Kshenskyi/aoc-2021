@@ -2,7 +2,8 @@ use std::io::BufRead;
 
 static NO_INPUT_FILE: &str = "ERROR: file name with the input data not specified!\nRun again with the file name as the first argument for this application.";
 static CANT_OPEN_FILE: &str = "ERROR: The file specified cannot be opened.";
-static COMMAND_INCORRECT: &str = "Check your input file, at least one of commands in the list is incorrect.";
+static COMMAND_INCORRECT: &str =
+    "Check your input file, at least one of commands in the list is incorrect.";
 
 pub enum Direction {
     Up,
@@ -17,12 +18,15 @@ pub struct Command {
 
 impl Command {
     pub fn new() -> Self {
-        Self {direction: Direction::Up, argument: 0}
+        Self {
+            direction: Direction::Up,
+            argument: 0,
+        }
     }
 }
 
 struct Commands {
-    pub commands_vec: Vec<Command>
+    pub commands_vec: Vec<Command>,
 }
 
 impl Commands {
@@ -45,7 +49,7 @@ impl Commands {
         }
 
         Self {
-            commands_vec: new_commands
+            commands_vec: new_commands,
         }
     }
 }
@@ -96,7 +100,7 @@ impl Submarine {
                 Direction::Forward => {
                     self.horizontal = self.horizontal + command.argument;
                     self.depth += self.aim * command.argument;
-                },
+                }
             }
         }
 
@@ -115,7 +119,7 @@ fn main() {
     if let Ok(input_file) = std::fs::File::open(filename) {
         input = std::io::BufReader::new(input_file)
             .lines()
-            .map(|line| line.unwrap() )
+            .map(|line| line.unwrap())
             .collect();
     } else {
         panic!("{}", CANT_OPEN_FILE);
