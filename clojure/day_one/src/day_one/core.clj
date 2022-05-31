@@ -13,7 +13,11 @@
        (partition 2 1)
        (filter #(> (nth % 1) (nth % 0)))
        (count)))
-(defn part-two [ints] 0)
+(defn part-two [ints]
+  (->> ints
+       (partition 3 1)
+       (map #(reduce + %))
+       (part-one)))
 
 (defn get-ints [args]
   (->> (nth args 0)
