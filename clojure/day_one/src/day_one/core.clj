@@ -1,18 +1,31 @@
 (ns day-one.core
   (:gen-class))
 
-(require '[clojure.java.io :as io])
+(require '[clojure.java.io :as io]
+         '[clojure.string :as str])
 
-(defn part-one [input] 0)
-(defn part-two [input] 0)
+(defn split-input [streeng] (str/split streeng #"\s+"))
+(defn str->int [streeng] (Integer/parseInt streeng))
+(defn into-ints [streengs] (map str->int streengs))
 
-(defn file-contents [args] (slurp (nth args 0)))
+(defn part-one [ints]
+  (->> ints
+       (partition 2 1)
+       (filter #(> (nth % 1) (nth % 0)))
+       (count)))
+(defn part-two [ints] 0)
+
+(defn get-ints [args]
+  (->> (nth args 0)
+       (slurp)
+       (split-input)
+       (into-ints)))
 (defn file-exists [filename] (.exists (io/as-file filename)))
 
 (defn -main [& args]
   (if (and (= (count args) 1) (file-exists (nth args 0)))
-    (let [contents (file-contents args)]
-      (println "Part 1 result: " (part-one contents))
-      (println "Part 2 result: " (part-two contents)))
+    (let [ints (get-ints args)]
+      (println "Part 1 result: " (part-one ints))
+      (println "Part 2 result: " (part-two ints)))
 
     (println "Need exactly ONE argument: an existing file name.")))
