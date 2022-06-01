@@ -5,6 +5,11 @@
          '[clojure.string :as str])
 
 (defn sort-pair [pair] [(get pair \0) (get pair \1)])
+(defn get-char [strings row col] (nth (nth strings row) col))
+(defn sort-pair-v2 [pair c] 
+  (cond 
+    (= (get-char pair 0 (- (count (nth pair 0)) 1)) c) (nth pair 0)
+    (= (get-char pair 1 (- (count (nth pair 0)) 1)) c) (nth pair 1)))
 (defn update-gamma [gamma pair]
   (if (> (nth pair 0) (nth pair 1))
     (str gamma \0)
@@ -24,6 +29,17 @@
         (recur (inc index) (update-gamma gamma (nth freqs index)))))))
 (defn get-epsilon [gamma] (apply str (map {\0 \1 \1 \0} gamma)))
 
+(defn get-part2-value [matrix search-string end-char]
+    (loop [filter-me matrix
+           search-index 0]
+      (if (= (count filter-me) 2)
+        (sort-pair-v2 filter-me end-char)
+        (recur (filter #(= (nth search-string search-index) (nth % search-index)) filter-me) (inc search-index)))
+      ))
+
+(defn get-oxygen-generator [matrix gamma] (get-part2-value matrix gamma \1))
+(defn get-co2-scrubber [matrix gamma] (get-part2-value matrix (get-epsilon gamma) \0))
+
 (defn split-input [streeng] (str/split streeng #"\s+"))
 
 (defn part-one [matrix]
@@ -31,7 +47,11 @@
         gval (Integer/parseInt gamma 2)
         eval (Integer/parseInt (get-epsilon gamma) 2)]
     (* gval eval)))
-(defn part-two [matrix] 0)
+(defn part-two [matrix]
+  (let [gamma (get-gamma matrix)
+        scrub (Integer/parseInt (get-co2-scrubber matrix gamma) 2)
+        oxygen (Integer/parseInt (get-oxygen-generator matrix gamma) 2)]
+    (* scrub oxygen)))
 
 (defn get-matrix [args]
   (->> (nth args 0)
