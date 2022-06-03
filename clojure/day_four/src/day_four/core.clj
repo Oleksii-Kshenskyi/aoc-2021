@@ -8,6 +8,9 @@
 (defn str->int [streeng] (Integer/parseInt streeng))
 (defn drop-empty-strings [coll] (into [] (filter #(false? (empty? %)) coll)))
 (defn init-unmarked [coll] (into [] (map #(vector % :unmarked) coll)))
+(defn drop-by-index [coll index]
+  (let [vec (into [] coll)]
+    (concat (subvec vec 0 index) (subvec vec (inc index)))))
 (defn reconstruct [boards]
   (->> boards
        (partition 2)
@@ -21,9 +24,11 @@
 (defn mark-with [mark-number boards]
   (loop [flat (flatten boards)
          index 0]
-    (if (> index (- (count flat) 2))
-      (reconstruct boards)
+    (if (= index (count flat))
+      (reconstruct flat)
       (recur (check-and-mark-single flat mark-number index) (+ index 2)))))
+(defn drop-board-and-mark [drop-index mark-number boards]
+  (mark-with mark-number (drop-by-index boards drop-index)))
 (defn check-and-inc [sum pair]
   (if (= (nth pair 1) :unmarked)
     (+ sum (str->int (nth pair 0)))
@@ -43,20 +48,31 @@
 (defn is-winning-board? [board]
   (or (any-winning-rows? board) (any-winning-cols? board)))
 (defn winning-board-exists [boards]
-  (loop [current boards]
+  (loop [current boards
+         index 0]
     (cond
-      (is-winning-board? (first current)) (first current)
+      (is-winning-board? (first current)) [index (first current)]
       (= (count current) 1) nil
-      :else (recur (drop 1 current)))))
+      :else (recur (drop 1 current) (inc index)))))
 
 (defn part-one [game]
   (loop [draw-seq (get game "draw")
-         boards (get game "boards")]
-    (let [winning-board (winning-board-exists boards)]
+         boards (get game "boards")
+         last-dropped nil]
+    (let [[_ winning-board] (winning-board-exists boards)]
     (if winning-board
-      (* (unmarked-sum winning-board) (first draw-seq))
-      (recur (drop 1 draw-seq) (mark-with (first draw-seq) boards))))))
-(defn part-two [game] 0)
+      (* (unmarked-sum winning-board) (str->int last-dropped))
+      (recur (drop 1 draw-seq) (mark-with (first draw-seq) boards) (first draw-seq))))))
+  (defn part-two [game]
+    (loop [draw-seq (get game "draw")
+           boards (get game "boards")
+           last-dropped nil]
+      (let [[win-index winning-board] (winning-board-exists boards)]
+        (println draw-seq)
+        (cond 
+          (and winning-board (not= (count boards) 1)) (recur (drop 1 draw-seq) (drop-board-and-mark win-index (first draw-seq) boards) (first draw-seq))
+          (and winning-board (= (count boards) 1)) (* (unmarked-sum winning-board) (str->int last-dropped))
+          (not winning-board) (recur (drop 1 draw-seq) (mark-with (first draw-seq) boards) (first draw-seq))))))
 
 (defn split-board [board]
   (->> board
