@@ -27,8 +27,7 @@
     (if (= index (count flat))
       (reconstruct flat)
       (recur (check-and-mark-single flat mark-number index) (+ index 2)))))
-(defn drop-board-and-mark [drop-index mark-number boards]
-  (mark-with mark-number (drop-by-index boards drop-index)))
+
 (defn check-and-inc [sum pair]
   (if (= (nth pair 1) :unmarked)
     (+ sum (str->int (nth pair 0)))
@@ -54,6 +53,14 @@
       (is-winning-board? (first current)) [index (first current)]
       (= (count current) 1) nil
       :else (recur (drop 1 current) (inc index)))))
+(defn drop-all-winning-boards [boards]
+  (loop [drop-us boards]
+    (let [[win-index current-win] (winning-board-exists drop-us)]
+      (if (= current-win nil)
+        drop-us
+        (recur (drop-by-index drop-us win-index))))))
+(defn drop-boards-and-mark [mark-number boards]
+  (mark-with mark-number (drop-all-winning-boards boards)))
 
 (defn part-one [game]
   (loop [draw-seq (get game "draw")
@@ -67,11 +74,10 @@
     (loop [draw-seq (get game "draw")
            boards (get game "boards")
            last-dropped nil]
-      (let [[win-index winning-board] (winning-board-exists boards)]
-        (println draw-seq)
+      (let [[_ winning-board] (winning-board-exists boards)]
         (cond 
-          (and winning-board (not= (count boards) 1)) (recur (drop 1 draw-seq) (drop-board-and-mark win-index (first draw-seq) boards) (first draw-seq))
-          (and winning-board (= (count boards) 1)) (* (unmarked-sum winning-board) (str->int last-dropped))
+          (and winning-board (not= (count boards) 1)) (recur (drop 1 draw-seq) (drop-boards-and-mark (first draw-seq) boards) (first draw-seq))
+          (or (empty? draw-seq) (and winning-board (= (count boards) 1))) (* (unmarked-sum winning-board) (str->int last-dropped))
           (not winning-board) (recur (drop 1 draw-seq) (mark-with (first draw-seq) boards) (first draw-seq))))))
 
 (defn split-board [board]
